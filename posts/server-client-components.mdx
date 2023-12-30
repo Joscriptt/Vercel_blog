@@ -1,0 +1,108 @@
+---
+title: Server and Client Components
+description: React Server Components allow developers to build applications that span the server and client.
+summary: The Uk goverment just want.
+image: "/postimages/coding/cat1.png"
+date: 2023-01-08
+author: Samantha Jones
+time_Read: 123
+author_Title: Software Engineer
+Author_image: "/postimages/Author/auth3.jpg"
+tags:
+  - theory
+---
+
+In the previous article, we've seen how we can calculate the prime factorization of a single number. Today, we'll focus on how we can efficiently find factorization in a range $[1, n]$. If you understand the sieve algorithm to find prime numbers, you're good to go. In case you don't know the sieve algorithm, you can read this article, [Sieve of Eratosthenes – Generate prime numbers](/sieve-of-eratosthenes).
+
+In the sieve algorithm, we start with $2$ and we mark all proper multiples of $2$ of the form $2k$ where $k > 1$ as composite. We then go the next unmarked number and simulate the same process. The idea is that, when we get a prime number $p$, and mark all the multiples of that prime $kp$ as composite (where $k>1$), we can say that $p$ is a prime factor of that multiple $kp$. This way we can store all the prime factors of a number in vector. Since we are doing factorization in a range, we'll need multiple vectors. Let's take a look at the code below:
+
+```cpp
+bool marks[10010];
+// array of vectors to store the facorization
+vector<int> fact[10010];
+
+void sieve_factorization(int n) {
+  for (int i = 2; i <= n; ++i) {
+    if (marks[i])
+      continue; // if i is composite
+
+    // otherwise 'i' is prime
+    // so we find all the multiples of i
+
+    for (int j = 2 * i; j <= n; j += i) {
+      marks[j] = 1; //  mark those as composite
+
+      // we know i is a prime factor of j
+      // so we push that into fact[j]
+      fact[j].push_back(i);
+    }
+
+    // i is a prime
+    // so it is a prime factor of itself
+    fact[i].push_back(i);
+  }
+}
+```
+
+When we invoke the function with $n$ as parameter, $fact[x]$ ($x \leq n$) will contain all the prime factors of $x$. We've computed all the prime factors. But we still don't know how many times the prime factor exists. So, for each prime factor $p_i$, we need to calculate its power $i$. There are two simple approaches that we can follow
+
+- When we need factorization, we calculate the power of each prime factors
+- Calculate prime factorization for all the numbers using the first approach
+
+To get the facotorization of a single value from it's prime factors, we can calculate the power for each prime factor $p_i$ of $x$ where $x$ is the desired number which we want to factorize. Note that, you must call the _sieve_factorization_ function before doing this.
+
+```cpp
+// make sure you call sieve_factorization function
+sieve_factoriztaion(1000);
+// which stores all the prime factors in the vectors
+
+void get_factorization(int x) {
+  // for each prime factor
+  for (auto pf : fact[x]) {
+    int k = x, p = 0;
+    // while x(100) is divisible by the prime factor
+    while (k % pf == 0) {
+      p++;     // increase power
+      k /= pf; // eliminate pf from x
+    }
+    // printing out the factorization
+    cout << pf << '^' << p << endl;
+  }
+}
+```
+
+We can also precalculate the factorization. The idea is quite same. For each prime $p$, we visit every compsite of the form $kp$ where $k > 1$ and for each composite $c$, while it is divisible by $p$ we keep dividing it by $p$ and simply count the number of occurances.
+
+```cpp
+bool marks[10010];
+vector<pair<int, int>> fact[10010];
+
+void sieve_factorization(int n) {
+  for (int i = 2; i <= n; ++i) {
+    if (marks[i])
+      continue; // if i is composite
+
+    // otherwise 'i' is prime
+    // so we find all the multiples of i
+    for (int j = 2 * i; j <= n; j += i) {
+      marks[j] = 1; // mark those as composite
+
+      // and we know i is a prime factor of j
+      // we don't know how many times the prime occurs
+      // so we calculate the number of occurances
+      int c = j, k = 0;
+      while (c % i == 0) {
+        c /= i;
+        k++;
+      }
+      // i is the prime
+      // and it is raised to the power k
+      fact[j].push_back({i, k});
+    }
+    // i is a prime
+    // so it is a prime factor of itself
+    // and it is raised to the power 1
+    fact[i].push_back({i, 1});
+  }
+}
+```
